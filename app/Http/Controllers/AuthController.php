@@ -14,26 +14,48 @@ class AuthController extends Controller
      *
      * @param  [string] name
      * @param  [string] email
+     * @param  [string] mobile
+     * @param  [string] registered_type
+     * @param  [string] gender
+     * @param  [string] profile_photo
      * @param  [string] password
-     * @param  [string] password_confirmation
      * @return [string] message
      */
     public function signup(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string|confirmed'
-        ]);
+        $er = $request->name;
+        
+        echo $er;
+        die;
         $user = new User([
             'name' => $request->name,
-            'email' => $request->email,
+            'email' => $request->email->unique(),
+            'username' => $this->generateUsername($request->name)->unique(),
+            'mobile' => $request->mobile,
+            'registered_type' => $request->registered_type,
+            'gender' => $request->gender,
+            'profile_photo' => $request->profile_photo,
             'password' => bcrypt($request->password)
         ]);
         $user->save();
         return response()->json([
             'message' => 'Successfully created user!'
         ], 201);
+    }
+    
+    public function generateUsername($name){
+        // Available alpha caracters
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+        // generate a pin based on 2 * 7 digits + a random character
+        $pin = $name
+            . mt_rand(1000000, 9999999)
+            . $characters[rand(0, strlen($characters) - 1)];
+
+        // shuffle the result
+        $string = str_shuffle($pin);
+        
+        return $string;
     }
   
     /**
